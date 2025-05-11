@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapor Siswa</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 30px;
+            font-weight: bold;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 1000px;
+            margin: auto;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 28px;
+        }
+        .info-section {
+            display: grid;
+            grid-template-columns: 200px 10px 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .info-section input {
+            border: none;
+            font-size: 14px;
+            padding: 2px 4px;
+            width: 100%;
+            font-weight: bold;
+            background-color: transparent;
+        }
+        .nilai-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+        .nilai-table th, .nilai-table td {
+            border: 0.2px solid #000;
+            padding: 10px;
+            font-weight: bold;
+        }
+        .nilai-table th {
+            background-color: #0074D9;
+            color: white;
+        }
+        .nilai-table td:first-child {
+            text-transform: uppercase;
+            text-align: left;
+        }
+        .nilai-table td:nth-child(2),
+        .nilai-table td:nth-child(3),
+        .nilai-table td:nth-child(4) {
+            text-align: center;
+        }
+        .rata-rata-row td {
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+        }
+        .ttd {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 80px;
+        }
+        .ttd div {
+            text-align: center;
+            flex: 1;
+        }
+        .ttd p {
+            margin-top: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .ttd .spacer {
+            min-height: 150px;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+        }
+        button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #downloadExcel {
+            background: green;
+        }
+        #downloadPDF {
+            background: #d35400;
+        }
+        #resetForm {
+            background: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="rapor">
+        <h1>RAPOR PESERTA DIDIK</h1>
+
+        <div class="info-section">
+            <label>Nama Sekolah</label><span>:</span><input type="text">
+            <label>Alamat</label><span>:</span><input type="text">
+            <label>Nama Peserta Didik</label><span>:</span><input type="text">
+            <label>Kelas</label><span>:</span><input type="text">
+            <label>Semester</label><span>:</span><input type="text">
+            <label>Tahun Ajaran</label><span>:</span><input type="text">
+        </div>
+
+        <table class="nilai-table" id="nilaiTable">
+            <thead>
+                <tr>
+                    <th>Mata Pelajaran</th>
+                    <th>Nilai</th>
+                    <th>Predikat</th>
+                    <th>Keterangan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Ilmu Pengetahuan Alam dan Sosial</td><td contenteditable="true" oninput="updatePredikat(this)"></td><td></td><td></td></tr>
+                <tr><td>Bahasa Indonesia</td><td contenteditable="true" oninput="updatePredikat(this)"></td><td></td><td></td></tr>
+                <tr><td>Matematika</td><td contenteditable="true" oninput="updatePredikat(this)"></td><td></td><td></td></tr>
+                <tr><td>Pendidikan Agama Islam</td><td contenteditable="true" oninput="updatePredikat(this)"></td><td></td><td></td></tr>
+                <tr><td>Bahasa Inggris</td><td contenteditable="true" oninput="updatePredikat(this)"></td><td></td><td></td></tr>
+                <tr class="rata-rata-row">
+                    <td colspan="3" style="text-align: center;">Rata-rata</td>
+                    <td id="rataRataCell" style="text-align: center;"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="ttd">
+            <div>
+                Orang Tua / Wali
+                <div class="spacer"></div>
+                <p>(........................................)</p>
+            </div>
+            <div>
+                Wali Kelas
+                <div class="spacer"></div>
+                <p>(........................................)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button id="downloadExcel">Download Excel</button>
+        <button id="downloadPDF">Download PDF</button>
+        <button id="resetForm">Reset</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+    <script>
+        function updatePredikat(cell) {
+            const nilai = parseFloat(cell.innerText);
+            let predikat = "", keterangan = "";
+            if (!isNaN(nilai)) {
+                if (nilai >= 85) {
+                    predikat = "A"; keterangan = "Sangat Baik";
+                } else if (nilai >= 75) {
+                    predikat = "B"; keterangan = "Baik";
+                } else if (nilai >= 65) {
+                    predikat = "C"; keterangan = "Cukup";
+                } else if (nilai >= 55) {
+                    predikat = "D"; keterangan = "Kurang";
+                } else {
+                    predikat = "E"; keterangan = "Sangat Kurang";
+                }
+            }
+            const predikatCell = cell.nextElementSibling;
+            const keteranganCell = predikatCell ? predikatCell.nextElementSibling : null;
+            if (predikatCell) predikatCell.textContent = predikat;
+            if (keteranganCell) keteranganCell.textContent = keterangan;
+            updateRataRata();
+        }
+
+        function updateRataRata() {
+            const nilaiCells = document.querySelectorAll("#nilaiTable tbody tr td:nth-child(2)");
+            let total = 0, count = 0;
+            nilaiCells.forEach(cell => {
+                const val = parseFloat(cell.innerText);
+                if (!isNaN(val)) {
+                    total += val;
+                    count++;
+                }
+            });
+            const rataRata = count > 0 ? total / count : 0;
+            document.getElementById("rataRataCell").textContent = rataRata.toFixed(2);
+        }
+
+        document.getElementById("downloadExcel").addEventListener("click", () => {
+            const wb = XLSX.utils.book_new();
+            const ws_data = [["Mata Pelajaran", "Nilai", "Predikat", "Keterangan"]];
+            document.querySelectorAll("#nilaiTable tbody tr").forEach(row => {
+                const cols = row.querySelectorAll("td");
+                if (cols.length === 4) {
+                    ws_data.push([
+                        cols[0].innerText.trim(),
+                        cols[1].innerText.trim(),
+                        cols[2].innerText.trim(),
+                        cols[3].innerText.trim()
+                    ]);
+                } else if (cols.length === 2) {
+                    ws_data.push(["Rata-rata", "", "", cols[1].innerText.trim()]);
+                }
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ws_data), "Rapor");
+            XLSX.writeFile(wb, "rapor_siswa.xlsx");
+        });
+
+        document.getElementById("downloadPDF").addEventListener("click", () => {
+            const element = document.getElementById("rapor");
+            const opt = {
+                margin: 0.5,
+                filename: 'rapor_siswa.pdf',
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { scale: 3, useCORS: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        });
+
+        document.getElementById("resetForm").addEventListener("click", () => {
+            document.querySelectorAll(".info-section input").forEach(input => input.value = "");
+            document.querySelectorAll("#nilaiTable tbody tr").forEach(row => {
+                const cells = row.querySelectorAll("td");
+                if (cells.length === 4) {
+                    cells[1].textContent = "";
+                    cells[2].textContent = "";
+                    cells[3].textContent = "";
+                }
+            });
+            document.getElementById("rataRataCell").textContent = "";
+        });
+    </script>
+</body>
+</html>
